@@ -120,10 +120,15 @@ class ChestXrayDataset(Dataset):
         assert image_all.shape[1]==self.image_size[0]*2, 'image_all.shape[1] = {}'.format(image_all.shape[1])
         return image_all
 
-def reduce_dataset(dataset, num_samples):
+def reduce_dataset(dataset, num_samples, seed=42):
+    # set seed
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    
     # reduce the dataset to num_samples by randomly selecting samples
-    while True:
-        indices = np.random.choice(len(dataset), num_samples, replace=False)
+    crit = True
+    while crit:
+        indices = np.random.choice(len(dataset), num_samples, replace=False,)
         dataset_reduced = torch.utils.data.Subset(dataset, indices)
         reduced_dataloader = torch.utils.data.DataLoader(dataset, batch_size=32, shuffle=False)
         # check if minimum number of samples are present for each class
@@ -133,7 +138,7 @@ def reduce_dataset(dataset, num_samples):
         label_count_1 = 0
         sensitive_count_0 = 0
         sensitive_count_1 = 0
-        for i, data in enumerate(reduced_dataloader):
+        for data in tqdm(reduced_dataloader):
             labels = data['label'].cpu().numpy().tolist()
             sensitive_attributes = data['sensitive_attribute'].cpu().numpy().tolist()
             label_count_0 += labels.count(0)
@@ -141,8 +146,9 @@ def reduce_dataset(dataset, num_samples):
             sensitive_count_0 += sensitive_attributes.count(0)
             sensitive_count_1 += sensitive_attributes.count(1)
 
-        if label_count_0 > 0 and label_count_1 > 0 and sensitive_count_0 > 0 and sensitive_count_1 > 0:
-            break
+            if label_count_0 > 0 and label_count_1 > 0 and sensitive_count_0 > 0 and sensitive_count_1 > 0:
+                crit = False
+                break
         print('label_count_0:', label_count_0, 'label_count_1:', label_count_1, 'sensitive_count_0:', sensitive_count_0, 'sensitive_count_1:', sensitive_count_1)
-        
+            
     return dataset_reduced
