@@ -125,7 +125,7 @@ def reduce_dataset(dataset, num_samples):
     while True:
         indices = np.random.choice(len(dataset), num_samples, replace=False)
         dataset_reduced = torch.utils.data.Subset(dataset, indices)
-        reduced_dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False)
+        reduced_dataloader = torch.utils.data.DataLoader(dataset, batch_size=32, shuffle=False)
         # check if minimum number of samples are present for each class
         
         # get all labels and sensitive attributes
