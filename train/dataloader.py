@@ -121,3 +121,30 @@ class ChestXrayDataset(Dataset):
         return image_all
 
 
+def reduce_dataset(dataset, num_samples):
+    # reduce the dataset to num_samples by randomly selecting samples
+    check = True
+    while check:
+        indices = np.random.choice(len(dataset), num_samples, replace=False)
+        dataset_reduced = torch.utils.data.Subset(dataset, indices)
+        # check if minimum number of samples are present for each class
+        label_count_0 = 0
+        label_count_1 = 0
+        sensitive_count_0 = 0
+        sensitive_count_1 = 0
+        for i in range(len(dataset_reduced)):
+            _, label, sensitive_attribute = dataset_reduced[i]
+            if label == 0:
+                label_count_0 += 1
+            else:
+                label_count_1 += 1
+            if sensitive_attribute == 0:
+                sensitive_count_0 += 1
+            else:
+                sensitive_count_1 += 1
+
+        if label_count_0 > 0 and label_count_1 > 0 and sensitive_count_0 > 0 and sensitive_count_1 > 0:
+            check = False
+        
+    
+    return dataset_reduced
