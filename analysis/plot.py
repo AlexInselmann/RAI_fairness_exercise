@@ -28,7 +28,7 @@ def plot_roc_simple(y_test, y_prob, a_test,y_pred,sensitive_attribute_name=None)
         group_data = df[df['a_test'] == group]
         plt.scatter(false_positive_rate(group_data['y_test'], group_data['y_pred']),
                     true_positive_rate(group_data['y_test'], group_data['y_pred']),
-                    s=100, label=f'{group}')
+                    s=100, label=f'{group} threshold=0.5')
 
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
