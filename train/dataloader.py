@@ -130,7 +130,18 @@ def reduce_dataset(dataset, num_samples, seed=42):
     while crit:
         indices = np.random.choice(len(dataset), num_samples, replace=False,)
         dataset_reduced = torch.utils.data.Subset(dataset, indices)
-        reduced_dataloader = torch.utils.data.DataLoader(dataset, batch_size=32, shuffle=False)
+        reduced_dataloader = DataLoader(dataset_reduced, batch_size=32, shuffle=False)
+        '''
+       
+        labels = [dataset_reduced.samples[i]['label'] for i in range(len(dataset_reduced))]
+        sensitive = [dataset_reduced.samples[i]['sensitive_attribute'] for i in range(len(dataset_reduced))]
+
+        if labels.count(0) > 0 and labels.count(1) > 0 and sensitive.count(0) > 0 and sensitive.count(1) > 0:
+            crit = False
+            
+
+
+        '''
         # check if minimum number of samples are present for each class
         
         # get all labels and sensitive attributes
@@ -150,5 +161,30 @@ def reduce_dataset(dataset, num_samples, seed=42):
                 crit = False
                 break
         print('label_count_0:', label_count_0, 'label_count_1:', label_count_1, 'sensitive_count_0:', sensitive_count_0, 'sensitive_count_1:', sensitive_count_1)
-            
+        
     return dataset_reduced
+
+def distort_data(dataset, distort_prc, seed=42):
+    from copy import deepcopy
+    # set seed
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+
+    dataset_distort = deepcopy(dataset)
+
+    samples = dataset_distort.samples
+
+    # get male samples
+    samples_male_healthy = [sample for sample in samples if sample['sensitive_attribute'] == 1 and sample['label'] == 0]
+    N_male_healthy = len(samples_male_healthy)
+
+    # Distort the labels
+    idx_flip =  np.random.choice(N_male_healthy, int(N_male_healthy*distort_prc), replace=False,)
+    for idx in idx_flip:
+        samples[idx]['label'] = np.array(1., dtype=np.float32)
+
+    # put samples into test_dataset_distort
+    dataset_distort.samples = samples
+
+    return dataset_distort
+
