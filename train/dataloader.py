@@ -175,13 +175,14 @@ def distort_data(dataset, distort_prc, seed=42):
     samples = dataset_distort.samples
 
     # get male samples
-    samples_male_healthy = [sample for sample in samples if sample['sensitive_attribute'] == 1 and sample['label'] == 0]
-    N_male_healthy = len(samples_male_healthy)
+    idx_male_healthy = [sample.idx for sample in samples if sample['sensitive_attribute'] == 1 and sample['label'] == 0]
+    N_male_healthy = len(idx_male_healthy)
 
     # Distort the labels
     idx_flip =  np.random.choice(N_male_healthy, int(N_male_healthy*distort_prc), replace=False,)
+
     for idx in idx_flip:
-        samples[idx]['label'] = np.array(1., dtype=np.float32)
+        samples[idx_male_healthy[idx]]['label'] = np.array(1., dtype=np.float32)
 
     # put samples into test_dataset_distort
     dataset_distort.samples = samples
